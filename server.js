@@ -170,3 +170,42 @@ function addEmployee() {
         });
     })
 };
+
+function updateRole() {
+    connection.query('SELECT * FROM employees',(err,employees) => {
+        if (err) throw err;
+
+        inquirer.prompt({
+            name: 'selectedEmployee',
+            type:'list',
+            message: 'Which employee\'s role would like to be updated?',
+            choices: employees.map(employee => ({
+                name: `${employee.first_name} ${employee.last_name}`,
+                value: employee.id
+            }))
+        }).then(answer =>{
+            const employeeId = answer.selectedEmployee;
+            connection.query('SELECT * FROM roles', (err,roles) => {
+                if (err) throw err;
+                inquirer.prompt({
+                    name: 'newRole',
+                    type:'list',
+                    message:'What is the new role of the employee?',
+                    choices: roles.map(role =>({
+                        name: role.title,
+                        value: role.id
+                    }))
+                }).then(answer =>{
+                    const newRoleId = answer.newRole;
+                    connection.query('UPDATE employees SET role_id = ? WHERE id = ?', 
+                        [newRoleId, employeeId],
+                        (err) => {
+                            if (err) throw err;
+                            console.log('Employee Role updated!')
+                        }
+                    );
+                });
+            });
+        });
+    });
+}
